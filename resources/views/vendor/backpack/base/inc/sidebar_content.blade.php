@@ -10,3 +10,6 @@
         <li class="nav-item"><a class="nav-link" href="{{ backpack_url('permission') }}"><i class="nav-icon la la-key"></i> <span>Permissions</span></a></li>
     </ul>
 </li>
+<li class='nav-item'><a class='nav-link' href='{{ backpack_url('category') }}'><i class='nav-icon la la-question'></i> Categories</a></li>
+<li class='nav-item'><a class='nav-link' href='{{ backpack_url('keyword') }}'><i class='nav-icon la la-question'></i> Keywords</a></li>
+<li class='nav-item'><a class='nav-link' href='{{ backpack_url('related-keyword') }}'><i class='nav-icon la la-question'></i> Related keywords</a></li>
