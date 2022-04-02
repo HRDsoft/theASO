@@ -4,6 +4,16 @@ models:
     relationships:
       hasMany: Keyword
 
+  SubCategory:
+    name: string 
+    relationships:
+      hasMany: Keyword
+
+  NicheCategory:
+    name: string 
+    relationships:
+      hasMany: Keyword
+
   Keyword:
     category_id: id foreign
     sub_category_id: id foreign nullable
