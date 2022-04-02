@@ -1,0 +1,19 @@
+created:
+    - database/factories/CategoryFactory.php
+    - database/factories/KeywordFactory.php
+    - database/factories/RelatedKeywordFactory.php
+    - database/migrations/2022_04_02_012245_create_categories_table.php
+    - database/migrations/2022_04_02_012246_create_keywords_table.php
+    - database/migrations/2022_04_02_012247_create_related_keywords_table.php
+    - app/Models/Category.php
+    - app/Models/Keyword.php
+    - app/Models/RelatedKeyword.php
+    - database/seeders/UserSeeder.php
+    - database/seeders/CategorySeeder.php
+    - database/seeders/KeywordSeeder.php
+    - database/seeders/RelatedKeywordSeeder.php
+models:
+    User: { last_name: string, first_name: string, email: string, agree: 'boolean default:0', email_verified_at: 'datetime nullable', password: string, remember_token: 'string:100 nullable' }
+    Category: { name: string, relationships: { hasMany: Keyword } }
+    Keyword: { category_id: 'id foreign', sub_category_id: 'id foreign nullable', niche_category_id: 'id foreign nullable', name: string, game: 'enum:yes,no', competition: integer, traffic: integer, branded: 'enum:yes,no', softdeletes: softDeletes, relationships: { hasMany: RelatedKeyword } }
+    RelatedKeyword: { keyword_id: 'id foreign', related_keyword_id: 'id foreign' }

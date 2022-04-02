@@ -112,7 +112,7 @@ return [
     'developer_link' => 'https://www.facebook.com/amirah09112018',
 
     // Show powered by Laravel Backpack in the footer? true/false
-    'show_powered_by' => true,
+    'show_powered_by' => false,
 
     // -------
     // SCRIPTS

@@ -1,0 +1,24 @@
+models:
+  Category:
+    name: string 
+    relationships:
+      hasMany: Keyword
+
+  Keyword:
+    category_id: id foreign
+    sub_category_id: id foreign nullable
+    niche_category_id: id foreign nullable
+    name: string 
+    game: enum:yes,no
+    competition: integer
+    traffic: integer
+    branded: enum:yes,no
+    softDeletes: true
+    relationships:
+      hasMany: RelatedKeyword
+
+  RelatedKeyword:
+    keyword_id: id foreign 
+    related_keyword_id: id foreign  
+
+seeders: User, Category, Keyword, RelatedKeyword

@@ -17,12 +17,16 @@ Route::group(['middleware' => [config('backpack.base.web_middleware', 'web')]], 
     Route::post('admin/register', 'App\Http\Controllers\Admin\Auth\RegisterController@register');
 });
 
-Route::group([
-    'prefix'     => config('backpack.base.route_prefix', 'admin'),
-    'middleware' => array_merge(
-        (array) config('backpack.base.web_middleware', 'web'),
-        (array) config('backpack.base.middleware_key', 'admin')
-    ),
-    'namespace'  => 'App\Http\Controllers\Admin',
-], function () { // custom admin routes
-}); // this should be the absolute last line of this file
+Route::group(['middleware' => ['verified']], function() {
+    Route::group([
+            'prefix'     => config('backpack.base.route_prefix', 'admin'),
+            'middleware' => array_merge(
+                (array) config('backpack.base.web_middleware', 'web'),
+                (array) config('backpack.base.middleware_key', 'admin')
+            ),
+            'namespace'  => 'App\Http\Controllers\Admin',
+        ], function () { // custom admin routes
+    }); // this should be the absolute last line of this file
+});
+
+
