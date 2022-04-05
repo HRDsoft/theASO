@@ -15,21 +15,21 @@ Route::group(['middleware' => [config('backpack.base.web_middleware', 'web')]], 
     //routes here
     Route::get('admin/register', 'App\Http\Controllers\Admin\Auth\RegisterController@showRegistrationForm')->name('backpack.auth.register');
     Route::post('admin/register', 'App\Http\Controllers\Admin\Auth\RegisterController@register');
-});
-
-// Route::group(['middleware' => ['verified']], function() {
-    Route::group([
-            'prefix'     => config('backpack.base.route_prefix', 'admin'),
-            'middleware' => array_merge(
-                (array) config('backpack.base.web_middleware', 'web'),
-                (array) config('backpack.base.middleware_key', 'admin')
-            ),
-            'namespace'  => 'App\Http\Controllers\Admin',
-        ], function () { // custom admin routes
-
-            Route::crud('category', 'CategoryCrudController');
-            Route::crud('keyword', 'KeywordCrudController');
-            Route::crud('related-keyword', 'RelatedKeywordCrudController');
-    }); // this should be the absolute last line of this file
     
-// });
+});
+Route::group([
+        'prefix'     => config('backpack.base.route_prefix', 'admin'),
+        'middleware' => array_merge(
+            (array) config('backpack.base.web_middleware', 'web'),
+            (array) config('backpack.base.middleware_key', 'admin')
+        ),
+        'namespace'  => 'App\Http\Controllers\Admin',
+    ], function () { // custom admin routes
+
+       
+    Route::crud('category', 'CategoryCrudController');
+    Route::crud('keyword', 'KeywordCrudController');
+    Route::crud('niche-category', 'NicheCategoryCrudController');
+    Route::crud('related-keyword', 'RelatedKeywordCrudController');
+    Route::crud('sub-category', 'SubCategoryCrudController');
+}); // this should be the absolute last line of this file

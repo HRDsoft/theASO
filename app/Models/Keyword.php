@@ -58,4 +58,8 @@ class Keyword extends Model
     {
         return $this->belongsTo(NicheCategory::class);
     }
+    //  public function keywords()
+    // {
+    //     return $this;
+    // }
 }
