@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Illuminate\Database\QueryException;
 use App\Http\Requests\KeywordRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Models\Keyword;
+use App\Models\RelatedKeyword;
+use Illuminate\Http\Request;
 
 /**
  * Class KeywordCrudController
@@ -15,8 +18,8 @@ use App\Models\Keyword;
 class KeywordCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation { store as traitStore; }
+    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation { update as traitUpdate; }
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
@@ -41,23 +44,71 @@ class KeywordCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::column('name');
-        CRUD::column('category_id');
-        CRUD::column('sub_category_id');
-        CRUD::column('niche_category_id');
-        CRUD::column('game');
         CRUD::addColumn([
             'name'     => 'name',
-            'label'    => 'Number of Words',
-            'type'     => 'number',
+            'label'    => 'Keyword',
+            'type'     => 'text'
+        ]);
+        CRUD::addColumn([
+            'name'     => 'category_id',
+            'label'    => 'Category',
+            'type'     => 'closure',
             'function' => function($entry) {
-                return $entry->name;
+                return $entry->category->name;
             }
         ]);
-        
+        CRUD::addColumn([
+            'name'     => 'sub_category_id',
+            'label'    => 'Sub Category',
+            'type'     => 'closure',
+            'function' => function($entry) {
+                return $entry->subCategory->name;
+            }
+        ]);
+        CRUD::addColumn([
+            'name'     => 'niche_category_id',
+            'label'    => 'Niche Category',
+            'type'     => 'closure',
+            'function' => function($entry) {
+                return ($entry->nicheCategory)?$entry->nicheCategory->name:'';
+            }
+        ]);
+        CRUD::column('game');
+        CRUD::addColumn([
+            'name'     => 'number_of_words',
+            'label'    => 'Number of Words',
+            'type'     => 'closure',
+            'function' => function($entry) {
+                return str_word_count($entry->name);
+            }
+        ]);
+        CRUD::addColumn([
+            'name'     => 'characters',
+            'label'    => 'Characters',
+            'type'     => 'closure',
+            'function' => function($entry) {
+                return strlen($entry->name);
+            }
+        ]);
         CRUD::column('competition');
         CRUD::column('traffic');
         CRUD::column('branded');
 
+        CRUD::addColumn([
+            'name'     => 'related_keywords',
+            'label'    => 'Related Keywords',
+            'type'     => 'closure',
+            'function' => function($entry) {
+                $keywords = [];
+                foreach ($entry->relatedKeywords as $index => $relatedKeyword) {
+                    if ($relatedKeyword->related_keyword) {
+                        $keywords[] = $relatedKeyword->related_keyword->name;
+                    }
+                    // code...
+                }
+                return implode(", ", $keywords);
+            }
+        ]);
         /**
          * Columns can be defined using the fluent syntax or array syntax:
          * - CRUD::column('price')->type('number');
@@ -148,6 +199,7 @@ class KeywordCrudController extends CrudController
             ],
             // optional
             'inline'      => true, // show the radios all on the same line?
+            'default' => "no"
         ]);
         // CRUD::field('game');
         CRUD::field('competition');
@@ -163,27 +215,14 @@ class KeywordCrudController extends CrudController
             ],
             // optional
             'inline'      => true, // show the radios all on the same line?
+            'default' => "no"
+
         ]);
-        $Keywords = Keyword::select('id', 'name')->get();
-        $array = [];
-        foreach ($Keywords as $keyword) {
-            $array[$keyword->id] = $keyword->name;
-        }
+        
         CRUD::addField([   // SelectMultiple = n-n relationship (with pivot table)
-            'label'     => "Related Keywords",
-            'type'      => 'select_from_array',
+            'label'     => "Related Keywords (Comma ', ' Separated)",
+            'type'      => 'text',
             'name'      => 'related_keyword_id', // the method that defines the relationship in your Model
-
-            // optional
-            // 'entity'    => 'keywords', // the method that defines the relationship in your Model
-            // 'model'     => "App\Models\Keyword", // foreign key model
-            // 'attribute' => 'name', // foreign key attribute that is shown to user
-            // 'pivot'     => true, // on create&update, do you need to add/delete pivot table entries?
-
-            // also optional
-            'options'   => $array, 
-            'allows_multiple' => true, // OPTIONAL; needs you to cast this to array in your model;
-            // force the related options to be a custom query, instead of all(); you can use this to filter the results show in the select
         ]);
         // CRUD::field('branded');
 
@@ -203,5 +242,100 @@ class KeywordCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+        $keyword = Keyword::find(explode('/', url()->current())[5]);
+        $keywords = [];
+        foreach ($keyword->relatedKeywords as $index => $relatedKeyword) {
+            $keywords[] = $relatedKeyword->related_keyword->name;
+        }
+
+        CRUD::addField([   // SelectMultiple = n-n relationship (with pivot table)
+            'label'     => "Related Keywords (Comma ', ' Separated)",
+            'type'      => 'text',
+            'name'      => 'related_keyword_id', // the method that defines the relationship in your Model
+            'value'     => implode(", ", $keywords)
+        ]);
     }
+
+    public function store(Request $request)
+    {   
+
+        $response = $this->traitStore();
+        $keyword_id = $this->data["entry"]->id;
+
+        $related_keywords = explode(", ", $request->related_keyword_id);
+        foreach ($related_keywords as $index => $related_keyword) {
+            try {
+                $Keyword = new Keyword();
+                $Keyword->category_id = $request->category_id;
+                $Keyword->sub_category_id = $request->sub_category_id;
+                $Keyword->niche_category_id = $request->niche_category_id;
+                $Keyword->name = $related_keyword;
+                $Keyword->game = $request->game;
+                $Keyword->competition = $request->competition;
+                $Keyword->traffic = $request->traffic;
+                $Keyword->branded = $request->branded;
+                $Keyword->save();
+                // try {
+                //     $RelatedKeyword = new RelatedKeyword();
+                //     $RelatedKeyword->keyword_id = $keyword_id;
+                //     $RelatedKeyword->related_keyword_id = $Keyword->id;
+                //     $RelatedKeyword->save();
+                    
+                // } catch (Exception $e) {
+                    
+                // }
+                // try {
+                //     $RelatedKeyword = new RelatedKeyword();
+                //     $RelatedKeyword->keyword_id = $Keyword->id;
+                //     $RelatedKeyword->related_keyword_id = $keyword_id;
+                //     $RelatedKeyword->save();
+                // } catch (Exception $e) {
+                
+                // }
+               
+            } catch (\Throwable   $e) {
+                dd($e);
+            }
+           
+
+            
+        }
+        // do something after save
+        return $response;
+    }
+
+    public function update(Request $request, $id)
+    {   
+
+        $response = $this->traitUpdate();
+
+        $related_keywords = explode(", ", $request->related_keyword_id);
+
+        foreach ($related_keywords as $index => $related_keyword) {
+            $Keyword = Keyword::find($id);
+            $Keyword->category_id = $request->category_id;
+            $Keyword->sub_category_id = $request->sub_category_id;
+            $Keyword->niche_category_id = $request->niche_category_id;
+            $Keyword->name = $related_keyword;
+            $Keyword->game = $request->game;
+            $Keyword->competition = $request->competition;
+            $Keyword->traffic = $request->traffic;
+            $Keyword->branded = $request->branded;
+            $Keyword->save();
+
+            
+            $RelatedKeyword = new RelatedKeyword();
+            $RelatedKeyword->keyword_id = $keyword_id;
+            $RelatedKeyword->related_keyword_id = $Keyword->id;
+            $RelatedKeyword->save();
+
+            $RelatedKeyword = new RelatedKeyword();
+            $RelatedKeyword->keyword_id = $Keyword->id;
+            $RelatedKeyword->related_keyword_id = $keyword_id;
+            $RelatedKeyword->save();
+        }
+        // do something after save
+        return $response;
+    }
+
 }

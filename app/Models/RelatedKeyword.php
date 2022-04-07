@@ -36,8 +36,8 @@ class RelatedKeyword extends Model
         return $this->belongsTo(Keyword::class);
     }
 
-    public function relatedKeyword()
+    public function related_keyword()
     {
-        return $this->belongsTo(RelatedKeyword::class);
+        return $this->belongsTo(Keyword::class, 'related_keyword_id', 'id');
     }
 }

@@ -25,7 +25,12 @@ class KeywordRequest extends FormRequest
     public function rules()
     {
         return [
-            // 'name' => 'required|min:5|max:255'
+            'name' => 'required|min:1|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'sub_category_id' => 'required|exists:sub_categories,id',
+            'competition' => 'required|integer|gte:1|lte:20000',
+            'traffic' => 'required|integer|gte:1|lte:100',
+            // 'sub_category_id' => 'required|exists:sub_categories,id',
         ];
     }
 
