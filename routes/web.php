@@ -22,3 +22,4 @@ Auth::routes(['verify' => true]);
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::post('admin/import/keyword',  [App\Http\Controllers\KeywordsController::class, 'import']);

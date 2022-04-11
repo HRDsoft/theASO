@@ -15,7 +15,7 @@ class CreateNicheCategoriesTable extends Migration
     {
         Schema::create('niche_categories', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->unique();
             $table->timestamps();
         });
     }

@@ -1,24 +1,24 @@
 models:
   Category:
-    name: string 
+    name: string unique
     relationships:
       hasMany: Keyword
 
   SubCategory:
-    name: string 
+    name: string unique
     relationships:
       hasMany: Keyword
 
   NicheCategory:
-    name: string 
+    name: string unique
     relationships:
       hasMany: Keyword
 
   Keyword:
     category_id: id foreign
-    sub_category_id: id foreign nullable
+    sub_category_id: id foreign
     niche_category_id: id foreign nullable
-    name: string 
+    name: string unique
     game: enum:yes,no
     competition: integer
     traffic: integer

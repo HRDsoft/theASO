@@ -17,10 +17,10 @@ class Keyword extends Model
      * @var array
      */
     protected $fillable = [
+        'name',
         'category_id',
         'sub_category_id',
         'niche_category_id',
-        'name',
         'game',
         'competition',
         'traffic',

@@ -9,6 +9,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Models\Keyword;
 use App\Models\RelatedKeyword;
 use Illuminate\Http\Request;
+use Redirect;
 
 /**
  * Class KeywordCrudController
@@ -22,6 +23,10 @@ class KeywordCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation { update as traitUpdate; }
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    // use \Backpack\CRUD\app\Http\Controllers\Operations\CloneOperation;
+    // use \Backpack\CRUD\app\Http\Controllers\Operations\BulkCloneOperation;
+    // use \Backpack\CRUD\app\Http\Controllers\Operations\BulkCloneOperation;
+    // use \Backpack\CRUD\app\Http\Controllers\Operations\BulkDeleteOperation;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -43,6 +48,10 @@ class KeywordCrudController extends CrudController
      */
     protected function setupListOperation()
     {
+        // positions: 'beginning' and 'end'
+        // stacks: 'line', 'top', 'bottom'
+        // types: view, model_function
+        // CRUD::addButton('bottom', 'Import CSV', 'view', 'asd', 'beginning');
         CRUD::column('name');
         CRUD::addColumn([
             'name'     => 'name',
@@ -258,84 +267,98 @@ class KeywordCrudController extends CrudController
 
     public function store(Request $request)
     {   
+        try {
+            $response = $this->traitStore();
+            $keyword_id = $this->data["entry"]->id;
+            $related_keywords = explode(", ", $request->related_keyword_id);
 
-        $response = $this->traitStore();
-        $keyword_id = $this->data["entry"]->id;
+            foreach ($related_keywords as $index => $related_keyword) {
+                if (strlen($related_keyword) > 0) {
+                    try {
+                        $Keyword = new Keyword();
+                        $Keyword->category_id = $request->category_id;
+                        $Keyword->sub_category_id = $request->sub_category_id;
+                        $Keyword->niche_category_id = $request->niche_category_id;
+                        $Keyword->name = $related_keyword;
+                        $Keyword->game = $request->game;
+                        $Keyword->competition = $request->competition;
+                        $Keyword->traffic = $request->traffic;
+                        $Keyword->branded = $request->branded;
+                        $Keyword->save();
+                    } catch (QueryException $e) {
+                        if($errorCode == 1062){
+                            $Keyword = Keyword::where('name', '=', $related_keyword)
+                                            ->where('category_id', '=', $request->category_id)
+                                            ->where('sub_category_id', '=', $request->sub_category_id)
+                                            ->first();
+                        }
+                        
+                    }
 
-        $related_keywords = explode(", ", $request->related_keyword_id);
-        foreach ($related_keywords as $index => $related_keyword) {
-            try {
-                $Keyword = new Keyword();
-                $Keyword->category_id = $request->category_id;
-                $Keyword->sub_category_id = $request->sub_category_id;
-                $Keyword->niche_category_id = $request->niche_category_id;
-                $Keyword->name = $related_keyword;
-                $Keyword->game = $request->game;
-                $Keyword->competition = $request->competition;
-                $Keyword->traffic = $request->traffic;
-                $Keyword->branded = $request->branded;
-                $Keyword->save();
-                // try {
-                //     $RelatedKeyword = new RelatedKeyword();
-                //     $RelatedKeyword->keyword_id = $keyword_id;
-                //     $RelatedKeyword->related_keyword_id = $Keyword->id;
-                //     $RelatedKeyword->save();
-                    
-                // } catch (Exception $e) {
-                    
-                // }
-                // try {
-                //     $RelatedKeyword = new RelatedKeyword();
-                //     $RelatedKeyword->keyword_id = $Keyword->id;
-                //     $RelatedKeyword->related_keyword_id = $keyword_id;
-                //     $RelatedKeyword->save();
-                // } catch (Exception $e) {
+                    $RelatedKeyword = new RelatedKeyword();
+                    $RelatedKeyword->keyword_id = $keyword_id;
+                    $RelatedKeyword->related_keyword_id = $Keyword->id;
+                    $RelatedKeyword->save();
                 
-                // }
-               
-            } catch (\Throwable   $e) {
-                dd($e);
+                    // $RelatedKeyword = new RelatedKeyword();
+                    // $RelatedKeyword->keyword_id = $Keyword->id;
+                    // $RelatedKeyword->related_keyword_id = $keyword_id;
+                    // $RelatedKeyword->save();
+                        
+                }
             }
-           
-
-            
+        } catch (QueryException $e) {
+            return Redirect::back()->withErrors(['name' => 'The Keyword you want to enter is already existing on the record']);
         }
-        // do something after save
+        
         return $response;
     }
 
     public function update(Request $request, $id)
     {   
+        try {
+            $response = $this->traitUpdate();
+            $keyword = Keyword::find($id);
+            $keyword->relatedKeywords()->delete();
+            // do something after save
+            $related_keywords = explode(", ", $request->related_keyword_id);
 
-        $response = $this->traitUpdate();
+            foreach ($related_keywords as $index => $related_keyword) {
+                $Keyword = Keyword::where('name', '=', $related_keyword)
+                    ->where('category_id', '=', $request->category_id)
+                    ->where('sub_category_id', '=', $request->sub_category_id)
+                    ->first();
+                if (!$Keyword) {
+                    $Keyword = new Keyword();
+                    $Keyword->category_id = $request->category_id;
+                    $Keyword->sub_category_id = $request->sub_category_id;
+                    $Keyword->niche_category_id = $request->niche_category_id;
+                    $Keyword->name = $related_keyword;
+                    $Keyword->game = $request->game;
+                    $Keyword->competition = $request->competition;
+                    $Keyword->traffic = $request->traffic;
+                    $Keyword->branded = $request->branded;
+                    $Keyword->save();
+                }
 
-        $related_keywords = explode(", ", $request->related_keyword_id);
-
-        foreach ($related_keywords as $index => $related_keyword) {
-            $Keyword = Keyword::find($id);
-            $Keyword->category_id = $request->category_id;
-            $Keyword->sub_category_id = $request->sub_category_id;
-            $Keyword->niche_category_id = $request->niche_category_id;
-            $Keyword->name = $related_keyword;
-            $Keyword->game = $request->game;
-            $Keyword->competition = $request->competition;
-            $Keyword->traffic = $request->traffic;
-            $Keyword->branded = $request->branded;
-            $Keyword->save();
-
+                
+                $RelatedKeyword = new RelatedKeyword();
+                $RelatedKeyword->keyword_id = $keyword->id;
+                $RelatedKeyword->related_keyword_id = $Keyword->id;
+                $RelatedKeyword->save();
+            }
             
-            $RelatedKeyword = new RelatedKeyword();
-            $RelatedKeyword->keyword_id = $keyword_id;
-            $RelatedKeyword->related_keyword_id = $Keyword->id;
-            $RelatedKeyword->save();
-
-            $RelatedKeyword = new RelatedKeyword();
-            $RelatedKeyword->keyword_id = $Keyword->id;
-            $RelatedKeyword->related_keyword_id = $keyword_id;
-            $RelatedKeyword->save();
+        } catch (QueryException $e) {
+            return Redirect::back()->withErrors(['name' => 'The Keyword you want to enter is already existing on the other record']);
         }
-        // do something after save
+        
         return $response;
+    }
+
+    public function import_keyword()
+    {
+         return view('keywords.import');
+        // code...
     }
 
 }

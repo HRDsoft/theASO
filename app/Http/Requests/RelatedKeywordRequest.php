@@ -25,7 +25,8 @@ class RelatedKeywordRequest extends FormRequest
     public function rules()
     {
         return [
-            // 'name' => 'required|min:5|max:255'
+            'keyword_id' => 'required',
+            'related_keyword_id' => 'required',
         ];
     }
 

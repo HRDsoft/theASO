@@ -18,9 +18,9 @@ class CreateKeywordsTable extends Migration
         Schema::create('keywords', function (Blueprint $table) {
             $table->id();
             $table->foreignId('category_id')->constrained();
-            $table->foreignId('sub_category_id')->nullable()->constrained();
+            $table->foreignId('sub_category_id')->constrained();
             $table->foreignId('niche_category_id')->nullable()->constrained();
-            $table->string('name');
+            $table->string('name')->unique();
             $table->enum('game', ["yes","no"]);
             $table->integer('competition');
             $table->integer('traffic');

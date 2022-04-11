@@ -26,7 +26,22 @@
     </ul>
 </li>
 
-<li class="nav-item"><a class='nav-link' href="{{ backpack_url('keyword') }}"><i class='nav-icon la la-question'></i> Keywords</a></li>
+<li class="nav-item">
+    <a class='nav-link' href="{{ backpack_url('keyword') }}">
+        <i class='nav-icon la la-question'></i> Keywords
+    </a>
+</li>
+<li class="nav-item">
+    <a class='nav-link' href="{{ backpack_url('related-keyword') }}">
+        <i class='nav-icon la la-question'></i> Related Keywords
+    </a>
+</li>
+<li class="nav-item">
+    <a class='nav-link' href="{{ backpack_url('import\keyword') }}">
+        <i class='nav-icon la la-question'></i> Import CSV
+    </a>
+</li>
+
 
 <li class="nav-item nav-dropdown">
     <a class="nav-link nav-dropdown-toggle" href="#"><i class="nav-icon la la-question"></i> Categories</a>
