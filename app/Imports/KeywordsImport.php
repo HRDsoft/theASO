@@ -87,38 +87,38 @@ class KeywordsImport implements ToCollection, WithHeadingRow, WithChunkReading, 
                     'branded' => $row["branded"],
                 ]);
             }else{
-                $keyword->relatedKeywords()->delete();
+                // $keyword->relatedKeywords()->delete();
             }
 
-            $related_keywords = explode(", ", $row["related_keywords"]);
+            // $related_keywords = explode(", ", $row["related_keywords"]);
 
-            foreach ($related_keywords as $index => $related_keyword) {
-                $Keyword = Keyword::where('name', '=', $related_keyword)
-                                ->where('category_id', '=', $category->id)
-                                ->where('sub_category_id', '=', $sub_category->id)
-                                ->first();
-                if (!$Keyword) {
-                   $Keyword = Keyword::create([
-                        'category_id' => $category->id,
-                        'sub_category_id' => $sub_category->id,
-                        'niche_category_id' => ($niche_category)?$niche_category->id:NULL,
-                        'name' => $related_keyword,
-                        'game' => $row["game"],
-                        'competition' => $row["competition"],
-                        'traffic' => $row["traffic"],
-                        'branded' => $row["branded"],
-                    ]);
-                }
+            // foreach ($related_keywords as $index => $related_keyword) {
+            //     $Keyword = Keyword::where('name', '=', $related_keyword)
+            //                     ->where('category_id', '=', $category->id)
+            //                     ->where('sub_category_id', '=', $sub_category->id)
+            //                     ->first();
+            //     if (!$Keyword) {
+            //        $Keyword = Keyword::create([
+            //             'category_id' => $category->id,
+            //             'sub_category_id' => $sub_category->id,
+            //             'niche_category_id' => ($niche_category)?$niche_category->id:NULL,
+            //             'name' => $related_keyword,
+            //             'game' => $row["game"],
+            //             'competition' => $row["competition"],
+            //             'traffic' => $row["traffic"],
+            //             'branded' => $row["branded"],
+            //         ]);
+            //     }
 
-                try {
-                    $related_keyword = RelatedKeyword::create([
-                        'keyword_id' => $keyword->id,
-                        'related_keyword_id' => $Keyword->id,
-                    ]);
-                } catch (QueryException $e) {
-                    continue;
-                }
-            }
+            //     try {
+            //         $related_keyword = RelatedKeyword::create([
+            //             'keyword_id' => $keyword->id,
+            //             'related_keyword_id' => $Keyword->id,
+            //         ]);
+            //     } catch (QueryException $e) {
+            //         continue;
+            //     }
+            // }
         }
     }
 

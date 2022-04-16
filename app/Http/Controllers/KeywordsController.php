@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Imports\KeywordsImport;
+use App\Models\Keyword;
+use App\Models\RelatedKeyword;
 use Maatwebsite\Excel\Facades\Excel;
 use Validator;
 use Session;
@@ -49,5 +51,28 @@ class KeywordsController extends Controller
         }else{
             return Redirect::back()->withErrors($validator);
         }
+    }
+
+    public function list(Request $request)
+    {
+        $keywords = Keyword::where('name', 'like', '%' . $request->term . '%')
+                            ->select(
+                                    'id',
+                                    'name'
+                                )
+                            ->get();
+        return response()->json($keywords);
+    }
+
+    public function related_keywords($id)
+    {
+
+        $related_keywords = RelatedKeyword::where('keyword_id', '=', $id)
+                                            ->orWhere('related_keyword_id', '=', $id)
+                                            ->with('keyword', 'related_keyword')
+                                            ->get();
+        $keywords = Keyword::whereNotIn('id', [$id])->limit(100)->get();
+        return response()->json(['keywords' => $keywords, 'related_keywords' => $related_keywords]);
+        
     }
 }

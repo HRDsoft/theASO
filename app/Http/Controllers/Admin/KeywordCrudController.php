@@ -103,21 +103,21 @@ class KeywordCrudController extends CrudController
         CRUD::column('traffic');
         CRUD::column('branded');
 
-        CRUD::addColumn([
-            'name'     => 'related_keywords',
-            'label'    => 'Related Keywords',
-            'type'     => 'closure',
-            'function' => function($entry) {
-                $keywords = [];
-                foreach ($entry->relatedKeywords as $index => $relatedKeyword) {
-                    if ($relatedKeyword->related_keyword) {
-                        $keywords[] = $relatedKeyword->related_keyword->name;
-                    }
-                    // code...
-                }
-                return implode(", ", $keywords);
-            }
-        ]);
+        // CRUD::addColumn([
+        //     'name'     => 'related_keywords',
+        //     'label'    => 'Related Keywords',
+        //     'type'     => 'closure',
+        //     'function' => function($entry) {
+        //         $keywords = [];
+        //         foreach ($entry->relatedKeywords as $index => $relatedKeyword) {
+        //             if ($relatedKeyword->related_keyword) {
+        //                 $keywords[] = $relatedKeyword->related_keyword->name;
+        //             }
+        //             // code...
+        //         }
+        //         return implode(", ", $keywords);
+        //     }
+        // ]);
         /**
          * Columns can be defined using the fluent syntax or array syntax:
          * - CRUD::column('price')->type('number');
@@ -228,11 +228,11 @@ class KeywordCrudController extends CrudController
 
         ]);
         
-        CRUD::addField([   // SelectMultiple = n-n relationship (with pivot table)
-            'label'     => "Related Keywords (Comma ', ' Separated)",
-            'type'      => 'text',
-            'name'      => 'related_keyword_id', // the method that defines the relationship in your Model
-        ]);
+        // CRUD::addField([   // SelectMultiple = n-n relationship (with pivot table)
+        //     'label'     => "Related Keywords (Comma ', ' Separated)",
+        //     'type'      => 'text',
+        //     'name'      => 'related_keyword_id', // the method that defines the relationship in your Model
+        // ]);
         // CRUD::field('branded');
 
         /**
@@ -251,62 +251,62 @@ class KeywordCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
-        $keyword = Keyword::find(explode('/', url()->current())[5]);
-        $keywords = [];
-        foreach ($keyword->relatedKeywords as $index => $relatedKeyword) {
-            $keywords[] = $relatedKeyword->related_keyword->name;
-        }
+        // $keyword = Keyword::find(explode('/', url()->current())[5]);
+        // $keywords = [];
+        // foreach ($keyword->relatedKeywords as $index => $relatedKeyword) {
+        //     $keywords[] = $relatedKeyword->related_keyword->name;
+        // }
 
-        CRUD::addField([   // SelectMultiple = n-n relationship (with pivot table)
-            'label'     => "Related Keywords (Comma ', ' Separated)",
-            'type'      => 'text',
-            'name'      => 'related_keyword_id', // the method that defines the relationship in your Model
-            'value'     => implode(", ", $keywords)
-        ]);
+        // CRUD::addField([   // SelectMultiple = n-n relationship (with pivot table)
+        //     'label'     => "Related Keywords (Comma ', ' Separated)",
+        //     'type'      => 'text',
+        //     'name'      => 'related_keyword_id', // the method that defines the relationship in your Model
+        //     'value'     => implode(", ", $keywords)
+        // ]);
     }
 
     public function store(Request $request)
     {   
         try {
             $response = $this->traitStore();
-            $keyword_id = $this->data["entry"]->id;
-            $related_keywords = explode(", ", $request->related_keyword_id);
+            // $keyword_id = $this->data["entry"]->id;
+            // $related_keywords = explode(", ", $request->related_keyword_id);
 
-            foreach ($related_keywords as $index => $related_keyword) {
-                if (strlen($related_keyword) > 0) {
-                    try {
-                        $Keyword = new Keyword();
-                        $Keyword->category_id = $request->category_id;
-                        $Keyword->sub_category_id = $request->sub_category_id;
-                        $Keyword->niche_category_id = $request->niche_category_id;
-                        $Keyword->name = $related_keyword;
-                        $Keyword->game = $request->game;
-                        $Keyword->competition = $request->competition;
-                        $Keyword->traffic = $request->traffic;
-                        $Keyword->branded = $request->branded;
-                        $Keyword->save();
-                    } catch (QueryException $e) {
-                        if($errorCode == 1062){
-                            $Keyword = Keyword::where('name', '=', $related_keyword)
-                                            ->where('category_id', '=', $request->category_id)
-                                            ->where('sub_category_id', '=', $request->sub_category_id)
-                                            ->first();
-                        }
+            // foreach ($related_keywords as $index => $related_keyword) {
+            //     if (strlen($related_keyword) > 0) {
+            //         try {
+            //             $Keyword = new Keyword();
+            //             $Keyword->category_id = $request->category_id;
+            //             $Keyword->sub_category_id = $request->sub_category_id;
+            //             $Keyword->niche_category_id = $request->niche_category_id;
+            //             $Keyword->name = $related_keyword;
+            //             $Keyword->game = $request->game;
+            //             $Keyword->competition = $request->competition;
+            //             $Keyword->traffic = $request->traffic;
+            //             $Keyword->branded = $request->branded;
+            //             $Keyword->save();
+            //         } catch (QueryException $e) {
+            //             if($errorCode == 1062){
+            //                 $Keyword = Keyword::where('name', '=', $related_keyword)
+            //                                 ->where('category_id', '=', $request->category_id)
+            //                                 ->where('sub_category_id', '=', $request->sub_category_id)
+            //                                 ->first();
+            //             }
                         
-                    }
+            //         }
 
-                    $RelatedKeyword = new RelatedKeyword();
-                    $RelatedKeyword->keyword_id = $keyword_id;
-                    $RelatedKeyword->related_keyword_id = $Keyword->id;
-                    $RelatedKeyword->save();
+            //         $RelatedKeyword = new RelatedKeyword();
+            //         $RelatedKeyword->keyword_id = $keyword_id;
+            //         $RelatedKeyword->related_keyword_id = $Keyword->id;
+            //         $RelatedKeyword->save();
                 
-                    // $RelatedKeyword = new RelatedKeyword();
-                    // $RelatedKeyword->keyword_id = $Keyword->id;
-                    // $RelatedKeyword->related_keyword_id = $keyword_id;
-                    // $RelatedKeyword->save();
+            //         // $RelatedKeyword = new RelatedKeyword();
+            //         // $RelatedKeyword->keyword_id = $Keyword->id;
+            //         // $RelatedKeyword->related_keyword_id = $keyword_id;
+            //         // $RelatedKeyword->save();
                         
-                }
-            }
+            //     }
+            // }
         } catch (QueryException $e) {
             return Redirect::back()->withErrors(['name' => 'The Keyword you want to enter is already existing on the record']);
         }
@@ -318,35 +318,35 @@ class KeywordCrudController extends CrudController
     {   
         try {
             $response = $this->traitUpdate();
-            $keyword = Keyword::find($id);
-            $keyword->relatedKeywords()->delete();
-            // do something after save
-            $related_keywords = explode(", ", $request->related_keyword_id);
+            // $keyword = Keyword::find($id);
+            // $keyword->relatedKeywords()->delete();
+            // // do something after save
+            // $related_keywords = explode(", ", $request->related_keyword_id);
 
-            foreach ($related_keywords as $index => $related_keyword) {
-                $Keyword = Keyword::where('name', '=', $related_keyword)
-                    ->where('category_id', '=', $request->category_id)
-                    ->where('sub_category_id', '=', $request->sub_category_id)
-                    ->first();
-                if (!$Keyword) {
-                    $Keyword = new Keyword();
-                    $Keyword->category_id = $request->category_id;
-                    $Keyword->sub_category_id = $request->sub_category_id;
-                    $Keyword->niche_category_id = $request->niche_category_id;
-                    $Keyword->name = $related_keyword;
-                    $Keyword->game = $request->game;
-                    $Keyword->competition = $request->competition;
-                    $Keyword->traffic = $request->traffic;
-                    $Keyword->branded = $request->branded;
-                    $Keyword->save();
-                }
+            // foreach ($related_keywords as $index => $related_keyword) {
+            //     $Keyword = Keyword::where('name', '=', $related_keyword)
+            //         ->where('category_id', '=', $request->category_id)
+            //         ->where('sub_category_id', '=', $request->sub_category_id)
+            //         ->first();
+            //     if (!$Keyword) {
+            //         $Keyword = new Keyword();
+            //         $Keyword->category_id = $request->category_id;
+            //         $Keyword->sub_category_id = $request->sub_category_id;
+            //         $Keyword->niche_category_id = $request->niche_category_id;
+            //         $Keyword->name = $related_keyword;
+            //         $Keyword->game = $request->game;
+            //         $Keyword->competition = $request->competition;
+            //         $Keyword->traffic = $request->traffic;
+            //         $Keyword->branded = $request->branded;
+            //         $Keyword->save();
+            //     }
 
                 
-                $RelatedKeyword = new RelatedKeyword();
-                $RelatedKeyword->keyword_id = $keyword->id;
-                $RelatedKeyword->related_keyword_id = $Keyword->id;
-                $RelatedKeyword->save();
-            }
+            //     $RelatedKeyword = new RelatedKeyword();
+            //     $RelatedKeyword->keyword_id = $keyword->id;
+            //     $RelatedKeyword->related_keyword_id = $Keyword->id;
+            //     $RelatedKeyword->save();
+            // }
             
         } catch (QueryException $e) {
             return Redirect::back()->withErrors(['name' => 'The Keyword you want to enter is already existing on the other record']);

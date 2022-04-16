@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\RelatedKeywordRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use DB;
 
 /**
  * Class RelatedKeywordCrudController
@@ -29,6 +30,7 @@ class RelatedKeywordCrudController extends CrudController
         CRUD::setModel(\App\Models\RelatedKeyword::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/related-keyword');
         CRUD::setEntityNameStrings('related keyword', 'related keywords');
+        $this->crud->setCreateView('related_keywords.create');
     }
 
     /**
@@ -39,8 +41,31 @@ class RelatedKeywordCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-        CRUD::column('keyword_id');
-        CRUD::column('related_keyword_id');
+        CRUD::addColumn([
+            'name'     => 'keyword_id',
+            'label'    => 'Keyword',
+            'type'     => 'closure',
+            'function' => function($entry) {
+                return $entry->keyword->name;
+            }
+        ]);
+        CRUD::addColumn([
+            'name'     => 'related_keyword_id',
+            'label'    => 'Related Keywords',
+            'type'     => 'custom_html',
+            'value' => function($entry) {
+                $keywords = [];
+                foreach ($entry->keyword->relatedKeywords as $key => $related_keyword) {
+                    $keywords[] = '<a href="'.backpack_url('related-keyword/'.$related_keyword->id.'/show').'">'.$related_keyword->related_keyword->name.'</a>';
+                }
+                return  implode(", ", $keywords);
+            }
+        ]);
+
+
+         // ->select(DB::raw('group_concat(name) as names'))
+        // CRUD::column('related_keyword_id');
+        CRUD::groupBy('keyword_id');
 
         /**
          * Columns can be defined using the fluent syntax or array syntax:
@@ -58,7 +83,6 @@ class RelatedKeywordCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation(RelatedKeywordRequest::class);
-
         CRUD::field('keyword_id');
         CRUD::field('related_keyword_id');
 
